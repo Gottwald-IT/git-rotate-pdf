@@ -1,6 +1,8 @@
-import matplotlib
-
 from __version__ import __version__
+
+import tkinter as tk
+from tkinter import Button
+from PIL import Image, ImageTk  # Pillow-Bibliothek für die Bildanzeige
 
 import configparser
 import fitz  # PyMuPDF
@@ -10,39 +12,61 @@ from io import BytesIO
 import tempfile
 import shutil  # Zum Verschieben/Löschen von Dateien
 
-# Konfiguration laden
-config = configparser.ConfigParser()
-config.read('config.ini')
-verzeichnis = config['DEFAULT']['Verzeichnis']
+def zeige_pdf_seite_und_frage(pdf_pfad):
+    def ja_gedrückt():
+        nonlocal antwort
+        antwort = 'j'
+        window.destroy()
 
-def zeige_pdf_seite(pdf_pfad):
+    def nein_gedrückt():
+        nonlocal antwort
+        antwort = 'n'
+        window.destroy()
+
+    max_width = 800
+    max_height = 600
+
+    window = tk.Tk()
+    window.title("PDF Vorschau und Entscheidung")
+
     doc = fitz.open(pdf_pfad)
-    seite = doc.load_page(0)  # lädt die erste Seite
+    seite = doc.load_page(0)
     pix = seite.get_pixmap()
+    img = Image.open(BytesIO(pix.tobytes("png")))
 
-    img_data = pix.tobytes("png")  # Konvertiert die Seite in PNG-Bytes
-    img = BytesIO(img_data)  # Erstellt einen BytesIO Stream aus den Bilddaten
+    # Bild skalieren, wenn es zu groß ist
+    img_width, img_height = img.size
+    scale = min(max_width / img_width, max_height / img_height, 1)
+    img_width, img_height = int(img_width * scale), int(img_height * scale)
+    img = img.resize((img_width, img_height), Image.Resampling.LANCZOS)  # Geändert von Image.ANTIALIAS zu Image.Resampling.LANCZOS
 
-    plt.figure()  # Erstellt eine neue Figur für die Anzeige
-    img_for_plt = plt.imread(img, format='png')  # Lädt das Bild aus dem BytesIO Stream
-    plt.imshow(img_for_plt)
-    plt.axis('off')  # Versteckt die Achsen
-    plt.show()
+    img_tk = ImageTk.PhotoImage(img)
 
-    plt.close()  # Schließt das Fenster nach der Anzeige
+    canvas = tk.Canvas(window, width=img_width, height=img_height)
+    canvas.pack()
+
+    canvas.create_image(0, 0, anchor=tk.NW, image=img_tk)
+
+    antwort = None
+
+    ja_button = Button(window, text="Ja", command=ja_gedrückt)
+    ja_button.pack(side=tk.LEFT)
+
+    nein_button = Button(window, text="Nein", command=nein_gedrückt)
+    nein_button.pack(side=tk.RIGHT)
+
+    window.mainloop()
     doc.close()
 
+    return antwort
 
 def drehe_pdf_wenn_nötig(pdf_pfad, temp_verzeichnis):
     doc = fitz.open(pdf_pfad)
     geändert = False
 
-    # Zeigt die erste Seite des PDFs an und lässt den Benutzer entscheiden
-    zeige_pdf_seite(pdf_pfad)
-    # Das Konsolenfenster bleibt verborgen
+    # Zeigt die erste Seite des PDFs an und fragt den Benutzer
+    antwort = zeige_pdf_seite_und_frage(pdf_pfad)
 
-    # Nutzen Sie `user_input` für Ihre Logik
-    antwort = input("Soll dieses PDF gedreht werden? (j/n): ").lower()
     if antwort == 'j':
         for seite in doc:
             aktuelle_rotation = seite.rotation
@@ -65,6 +89,7 @@ def durchsuche_verzeichnis_und_drehe_pdfs(verzeichnis):
             for file in files:
                 if file.endswith('.pdf'):
                     pdf_pfad = os.path.join(root, file)
+
                     drehe_pdf_wenn_nötig(pdf_pfad, temp_verzeichnis)
 
 # Ersetzen Sie 'verzeichnis' mit dem tatsächlichen Pfad zum Verzeichnis mit Ihren PDF-Dateien
@@ -81,4 +106,8 @@ print(f"fort. Wurde das letzte PDF angezeigt wird das Programm beendet.")
 print(f"Das Programm kann vorzeitig mit CTRL-C beendet werden.")
 print (f"*******************************************************************")
 print()
+# Konfiguration laden
+config = configparser.ConfigParser()
+config.read('config.ini')
+verzeichnis = config['DEFAULT']['Verzeichnis']
 durchsuche_verzeichnis_und_drehe_pdfs(verzeichnis)
