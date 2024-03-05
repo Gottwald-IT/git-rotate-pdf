@@ -1,3 +1,4 @@
+from __version__ import __version__
 import configparser
 import fitz  # PyMuPDF
 import os
@@ -60,4 +61,17 @@ def durchsuche_verzeichnis_und_drehe_pdfs(verzeichnis):
                     drehe_pdf_wenn_nötig(pdf_pfad, temp_verzeichnis)
 
 # Ersetzen Sie 'verzeichnis' mit dem tatsächlichen Pfad zum Verzeichnis mit Ihren PDF-Dateien
+print (f"*******************************************************************")
+print(f"GIT-ROTATE-PDF - Version {__version__}")
+print (f"*******************************************************************")
+print(f"Copyright 2024, Frank Gottwald IT, 64653 Lorsch")
+print (f"*******************************************************************")
+print(f"Das Programm durchsucht ein Verzeichnis aus der config.ini")
+print(f"nach PDF Dateien. Es wird jeweils die erste Seite angezeigt")
+print(f"und gefragt, ob das PDF gedreht werden soll. (j) dreht das PDF,")
+print(f"jede andere antwort führt das Programm mit dem nächsten PDF ")
+print(f"fort. Wurde das letzte PDF angezeigt wird das Programm beendet.")
+print(f"Das Programm kann vorzeitig mit CTRL-C beendet werden.")
+print (f"*******************************************************************")
+print()
 durchsuche_verzeichnis_und_drehe_pdfs(verzeichnis)
