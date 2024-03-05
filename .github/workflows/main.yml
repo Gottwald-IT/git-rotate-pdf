@@ -22,9 +22,13 @@ jobs:
         
     - name: Build EXE with PyInstaller
       run: pyinstaller --onedir --windowed --add-data "config.ini;." git-rotate-pdf.py
-      
+    
+    - name: Zip output directory
+      run: Compress-Archive -Path dist/* -DestinationPath program.zip
+
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: git-rotate-pdf
-        path: dist/*.exe
+        name: program_files
+        path: git-rotate-pdf.zip      
+   
