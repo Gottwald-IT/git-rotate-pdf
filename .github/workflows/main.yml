@@ -21,7 +21,7 @@ jobs:
         pip install -r requirements.txt
         
     - name: Build EXE with PyInstaller
-      run: pyinstaller --onefile --windowed --add-data "config.ini;." git-rotate-pdf.py
+      run: pyinstaller --onedir --windowed --add-data "config.ini;." git-rotate-pdf.py
       
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
