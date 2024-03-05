@@ -23,6 +23,12 @@ def zeige_pdf_seite_und_frage(pdf_pfad):
         antwort = 'n'
         window.destroy()
 
+    def tastendruck(event):
+        if event.char == 'j':
+            ja_gedrückt()
+        elif event.char == 'n':
+            nein_gedrückt()
+
     max_width = 800
     max_height = 600
 
@@ -34,17 +40,15 @@ def zeige_pdf_seite_und_frage(pdf_pfad):
     pix = seite.get_pixmap()
     img = Image.open(BytesIO(pix.tobytes("png")))
 
-    # Bild skalieren, wenn es zu groß ist
     img_width, img_height = img.size
     scale = min(max_width / img_width, max_height / img_height, 1)
     img_width, img_height = int(img_width * scale), int(img_height * scale)
-    img = img.resize((img_width, img_height), Image.Resampling.LANCZOS)  # Geändert von Image.ANTIALIAS zu Image.Resampling.LANCZOS
+    img = img.resize((img_width, img_height), Image.Resampling.LANCZOS)
 
     img_tk = ImageTk.PhotoImage(img)
 
     canvas = tk.Canvas(window, width=img_width, height=img_height)
     canvas.pack()
-
     canvas.create_image(0, 0, anchor=tk.NW, image=img_tk)
 
     antwort = None
@@ -54,6 +58,9 @@ def zeige_pdf_seite_und_frage(pdf_pfad):
 
     nein_button = Button(window, text="Nein", command=nein_gedrückt)
     nein_button.pack(side=tk.RIGHT)
+
+    # Event-Handler für Tastendrücke hinzufügen
+    window.bind("<Key>", tastendruck)
 
     window.mainloop()
     doc.close()
