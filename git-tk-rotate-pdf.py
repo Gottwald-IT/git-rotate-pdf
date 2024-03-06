@@ -12,7 +12,6 @@ import shutil
 antwort = [None]  # Verwenden einer Liste für die mutable Referenz
 def zeige_pdf_seite_und_frage(pdf_pfad):
 
-
     def set_antwort(drehung):
         antwort[0] = drehung
         window.destroy()
@@ -31,10 +30,15 @@ def zeige_pdf_seite_und_frage(pdf_pfad):
 
     window = tk.Tk()
     window.title("PDF Vorschau und Entscheidung")
+    window.state('zoomed')
 
     # Fenstergröße und Position einstellen
     screen = screeninfo.get_monitors()[0]
-    window.geometry(f"{screen.width}x{screen.height}+0+0")
+    # Fenstergröße und Position einstellen
+    screen_height_adjusted = screen.height - 40  # adjust for taskbar height
+    window.geometry(f"{screen.width}x{screen_height_adjusted}+0+0")
+
+    # window.geometry(f"{screen.width}x{screen.height}+0+0")
 
     # PDF-Seite anzeigen
     doc = fitz.open(pdf_pfad)
@@ -44,13 +48,13 @@ def zeige_pdf_seite_und_frage(pdf_pfad):
 
     # Bildskalierung und Anzeige
     img_ratio = img.width / img.height
-    new_height = min(img.height, screen.height - 120)
+    new_height = min(img.height, screen_height_adjusted - 120)
     new_width = int(new_height * img_ratio)
     img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
 
     img_tk = ImageTk.PhotoImage(img)
-    canvas = Canvas(window, width=screen.width, height=screen.height - 120)
-    canvas.create_image(screen.width // 2 - new_width // 2, (screen.height - 120) // 2 - new_height // 2, anchor="nw",
+    canvas = Canvas(window, width=screen.width, height=screen_height_adjusted - 120)
+    canvas.create_image(screen.width // 2 - new_width // 2, (screen_height_adjusted - 120) // 2 - new_height // 2, anchor="nw",
                         image=img_tk)
     canvas.pack()
 
@@ -64,7 +68,9 @@ def zeige_pdf_seite_und_frage(pdf_pfad):
     Button(button_frame, text="Weiter", command=lambda: set_antwort('weiter')).pack(side=tk.LEFT, padx=10, pady=10)
     Button(button_frame, text="Beenden", command=lambda: set_antwort('beenden')).pack(side=tk.RIGHT, padx=10, pady=10)
     window.bind("<Key>", tastendruck)
+
     window.focus_set()
+    window.state('zoomed')
     window.mainloop()
     doc.close()
 
