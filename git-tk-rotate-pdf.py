@@ -99,7 +99,7 @@ def drehe_pdf_wenn_nötig(pdf_pfad, temp_verzeichnis):
             geändert = True
         elif antwort == 'beenden':
             doc.close()
-            exit()  # Beendet das gesamte Programm sofort
+            exit(0)  # Beendet das gesamte Programm sofort
 
     if geändert:
         temp_pfad = os.path.join(temp_verzeichnis, os.path.basename(pdf_pfad))
@@ -114,9 +114,25 @@ def durchsuche_verzeichnis_und_drehe_pdfs(verzeichnis):
             for file in files:
                 if file.endswith('.pdf'):
                     pdf_pfad = os.path.join(root, file)
-                    drehe_pdf_wenn_nötig(pdf_pfad, temp_verzeichnis)
-                    if antwort == 'beenden':
-                        return  # Beendet das Durchsuchen der Verzeichnisse
+                    if can_open_file_exclusive(pdf_pfad):
+                        drehe_pdf_wenn_nötig(pdf_pfad, temp_verzeichnis)
+                        if antwort == 'beenden':
+                            return  # Beendet das Durchsuchen der Verzeichnisse
+
+def can_open_file_exclusive(path):
+    try:
+        # Versuche, die Datei im exklusiven Modus zu öffnen
+        fd = os.open(path, os.O_EXCL | os.O_RDWR)
+        # Schließen Sie die Datei sofort wieder
+        os.close(fd)
+        # Wenn wir hier angelangt sind, dann konnten wir die Datei erfolgreich öffnen,
+        # also geben wir True zurück
+        return True
+    except OSError:
+        # Wenn es eine OSError gibt, bedeutet das, dass wir die Datei nicht öffnen konnten,
+        # also geben wir False zurück
+        return False
+
 
 # Konfiguration laden und Programm starten
 config = configparser.ConfigParser()

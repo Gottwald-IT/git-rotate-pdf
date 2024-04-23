@@ -65,7 +65,23 @@ def durchsuche_verzeichnis_und_drehe_pdfs(verzeichnis):
             for file in files:
                 if file.endswith('.pdf'):
                     pdf_pfad = os.path.join(root, file)
-                    drehe_pdf_wenn_nötig(pdf_pfad, temp_verzeichnis)
+                    if can_open_file_exclusive(pdf_pfad):
+                        drehe_pdf_wenn_nötig(pdf_pfad, temp_verzeichnis)
+
+def can_open_file_exclusive(path):
+    try:
+        # Versuche, die Datei im exklusiven Modus zu öffnen
+        fd = os.open(path, os.O_EXCL | os.O_RDWR)
+        # Schließen Sie die Datei sofort wieder
+        os.close(fd)
+        # Wenn wir hier angelangt sind, dann konnten wir die Datei erfolgreich öffnen,
+        # also geben wir True zurück
+        return True
+    except OSError:
+        # Wenn es eine OSError gibt, bedeutet das, dass wir die Datei nicht öffnen konnten,
+        # also geben wir False zurück
+        return False
+
 
 # Ersetzen Sie 'verzeichnis' mit dem tatsächlichen Pfad zum Verzeichnis mit Ihren PDF-Dateien
 print (f"*******************************************************************")
